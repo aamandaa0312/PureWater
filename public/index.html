@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PureWater | Áreas Contaminadas em SP</title>
-    <link rel="icon" href="../assect/logo.png">
+    <link rel="icon" href="./assect/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -39,16 +39,35 @@
         }
 
         .logo img {
-            height: 35px; /* Tamanho reduzido da logo */
+            height: 35px;
             width: auto;
         }
 
         .logo h5 {
             color: white;
             font-weight: 600;
-            font-size: 1.3rem; /* Tamanho reduzido do texto */
+            font-size: 1.3rem;
             margin: 0;
             padding: 0;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 100%;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin-left: 1rem;
         }
 
         .nav-link {
@@ -56,16 +75,19 @@
             font-weight: 500;
             padding: 0.5rem 1rem !important;
             transition: all 0.3s;
+            border-radius: 5px;
         }
 
         .nav-link:hover, .nav-link.active {
             transform: translateY(-2px);
             opacity: 0.9;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .search-form {
             display: flex;
             align-items: center;
+            margin-left: 1.5rem;
         }
 
         .search-input {
@@ -74,6 +96,11 @@
             padding: 0.5rem 1rem;
             outline: none;
             width: 200px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            width: 250px;
         }
 
         .search-btn {
@@ -90,8 +117,14 @@
             background: #4ad0ff;
         }
 
+        .navbar-toggler {
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+        }
+
         .hero-section {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assect/img.jpg') no-repeat center center;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('./assect/img.jpg') no-repeat center center;
             background-size: cover;
             color: white;
             position: relative;
@@ -210,7 +243,7 @@
         }
 
         .footer-logo {
-            height: 30px; /* Tamanho reduzido da logo no footer */
+            height: 30px;
             width: auto;
         }
 
@@ -304,14 +337,49 @@
             margin-bottom: 10px;
         }
 
+        @media (max-width: 1200px) {
+            .search-input {
+                width: 150px;
+            }
+            
+            .search-input:focus {
+                width: 180px;
+            }
+        }
+
         @media (max-width: 992px) {
+            .nav-container {
+                justify-content: space-between;
+            }
+            
             .search-form {
+                margin-left: 0;
                 margin-top: 1rem;
                 width: 100%;
             }
             
             .search-input {
                 width: 100%;
+                border-radius: 20px;
+            }
+            
+            .search-input:focus {
+                width: 100%;
+            }
+            
+            .search-btn {
+                display: none;
+            }
+            
+            .nav-menu {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .nav-item {
+                margin: 0.5rem 0;
+                width: 100%;
+                text-align: center;
             }
         }
 
@@ -335,30 +403,68 @@
             .logo h5 {
                 font-size: 1.1rem;
             }
+            
+            .logo img {
+                height: 30px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .logo h5 {
+                font-size: 1rem;
+            }
+            
+            .nav-link {
+                padding: 0.5rem !important;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header-gradient">
-        <div class="container d-flex justify-content-between align-items-center py-3">
-            <div class="logo">
-                <img src="../assect/logo.png" alt="Pure" class="img-fluid">
-                <h5>PureWater</h5>
+        <div class="container py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="logo">
+                    <img src="./assect/logo.png" alt="Pure" class="img-fluid">
+                    <h5>PureWater</h5>
+                </div>
+                
+                <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="nav-container collapse d-lg-flex" id="navbarContent">
+                    <ul class="nav-menu">
+                        <li class="nav-item d-none d-lg-block">
+                            <a class="nav-link active" href="sobre.html"><i class="fas fa-info-circle me-2"></i>Sobre</a>
+                        </li>
+                        <li class="nav-item d-none d-lg-block">
+                            <a class="nav-link" href="#mapa"><i class="fas fa-map-marked-alt me-2"></i>Mapa</a>
+                        </li>
+                        <li class="nav-item d-none d-lg-block">
+                            <a class="nav-link" href="#contato"><i class="fas fa-envelope me-2"></i>Contato</a>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link active" href="sobre.html"><i class="fas fa-info-circle me-2"></i>Sobre</a>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="#mapa"><i class="fas fa-map-marked-alt me-2"></i>Mapa</a>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link" href="#contato"><i class="fas fa-envelope me-2"></i>Contato</a>
+                        </li>
+                    </ul>
+                    <form class="search-form">
+                        <input type="text" class="search-input" placeholder="Pesquisar...">
+                        <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
             </div>
-            <nav class="d-flex align-items-center">
-                <ul class="nav me-3">
-                    <li class="nav-item"><a class="nav-link active" href="sobre.html"><i class="fas fa-info-circle me-2"></i>Sobre</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#mapa"><i class="fas fa-map-marked-alt me-2"></i>Mapa</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contato"><i class="fas fa-envelope me-2"></i>Contato</a></li>
-                </ul>
-                <form class="search-form">
-                    <input type="text" class="search-input" placeholder="Pesquisar...">
-                    <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
-                </form>
-            </nav>
         </div>
     </header>
+
 
     <!-- Hero Section -->
     <section class="hero-section py-5">
@@ -553,14 +659,14 @@
             <div class="row text-center text-md-start">
                 <div class="col-md-4 mb-4 mb-md-0">
                     <div  class="logo">
-                    <img src="../assect/logo.png" alt="Pure" class="logo">
+                    <img src="./assect/logo.png" alt="Pure" class="logo">
                     </div>
                     <p class="mt-2 text-white">Transformando cidades para um futuro sustentável.</p>
                 </div>
-                <div class="col-md-4 mb-4 mb-md-0">
+                <div class="col-md-4 mb-4 mb-md-0 ">
                     <h5 class="text-white">Links Rápidos</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="sobre.html" class="text-white">Sobre nós</a></li>
+                    <ul class="list-unstyled ">
+                        <li><a href="sobre.html" class="text-white ">Sobre nós</a></li>
                         <li><a href="#mapa" class="text-white">Mapa</a></li>
                         <li><a href="#contato" class="text-white">Contato</a></li>
                     </ul>
