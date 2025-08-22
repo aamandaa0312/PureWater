@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PureWater | Áreas Contaminadas em SP</title>
+    <link rel="icon" href="../assect/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2e668b;
+            --primary-dark: #1f446f;
+            --secondary: #3A606E;
+            --accent: #66e0ff;
+            --light: #F8F9FA;
+            --dark: #212529;
+            --gray: #6C757D;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo img {
+            height: 35px; /* Tamanho reduzido da logo */
+            width: auto;
+        }
+
+        .logo h5 {
+            color: white;
+            font-weight: 600;
+            font-size: 1.3rem; /* Tamanho reduzido do texto */
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            border: none;
+            border-radius: 20px 0 0 20px;
+            padding: 0.5rem 1rem;
+            outline: none;
+            width: 200px;
+        }
+
+        .search-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 0 20px 20px 0;
+            padding: 0.5rem 0.8rem;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #4ad0ff;
+        }
+
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assect/img.jpg') no-repeat center center;
+            background-size: cover;
+            color: white;
+            position: relative;
+            padding: 6rem 0;
+        }
+
+        .contamination-section {
+            background-color: #f8f9fa;
+            padding: 3rem 0;
+        }
+
+        .contamination-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .contamination-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-left: 4px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .contamination-map {
+            height: 700px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .legend {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+
+        .progress {
+            height: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .footer {
+            background: var(--secondary);
+            color: white;
+            padding: 3rem 0;
+        }
+
+        .footer-logo {
+            height: 30px; /* Tamanho reduzido da logo no footer */
+            width: auto;
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .social-icons a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 50px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .info-box {
+            background-color: rgba(46, 102, 139, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .location-card {
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .location-card:hover {
+            transform: translateX(5px);
+        }
+
+        .contaminant-tag {
+            display: inline-block;
+            background-color: rgba(139, 46, 46, 0.1);
+            color: #8b2e2e;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .status-aci { background-color: #e9ecef; color: #495057; }
+        .status-acre { background-color: #fff3cd; color: #856404; }
+        .status-acri { background-color: #f8d7da; color: #721c24; }
+        .status-acru { background-color: #d4edda; color: #155724; }
+
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-filter {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 992px) {
+            .search-form {
+                margin-top: 1rem;
+                width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-section {
+                padding: 4rem 0;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .contamination-map {
+                height: 500px;
+            }
+            
+            .logo h5 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-gradient">
+        <div class="container d-flex justify-content-between align-items-center py-3">
+            <div class="logo">
+                <img src="../assect/logo.png" alt="Pure" class="img-fluid">
+                <h5>PureWater</h5>
+            </div>
+            <nav class="d-flex align-items-center">
+                <ul class="nav me-3">
+                    <li class="nav-item"><a class="nav-link active" href="sobre.html"><i class="fas fa-info-circle me-2"></i>Sobre</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#mapa"><i class="fas fa-map-marked-alt me-2"></i>Mapa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contato"><i class="fas fa-envelope me-2"></i>Contato</a></li>
+                </ul>
+                <form class="search-form">
+                    <input type="text" class="search-input" placeholder="Pesquisar...">
+                    <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-5">
+        <div class="container text-center position-relative">
+            <div class="hero-text">
+                <h1 class="display-4 fw-bold mb-4">Áreas Contaminadas no <span class="text-warning">Estado de São Paulo</span></h1>
+                <p class="lead">Visualização interativa dos dados de contaminação do solo e água</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção: Visualização de Áreas Contaminadas -->
+    <section id="contaminacao" class="contamination-section py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Situação das <span class="text-primary">Áreas Contaminadas</span> em SP</h2>
+            <p class="text-center mb-5">Dados do relatório Vigisolo mostram a situação das áreas contaminadas e a população exposta</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">4.572</div>
+                    <div class="stat-label">Áreas Contaminadas (2019)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2.7M</div>
+                    <div class="stat-label">Pessoas Expostas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1.172</div>
+                    <div class="stat-label">Áreas Cadastradas no Sissolo</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">77.7%</div>
+                    <div class="stat-label">Postos de Combustível</div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h4 class="mb-4">Distribuição por Tipo de Atividade</h4>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Postos de Combustível</span>
+                                <span>77.7%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 77.7%; background-color: #8b2e2e;" aria-valuenow="77.7" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Áreas Industriais</span>
+                                <span>10.8%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 10.8%; background-color: #3A606E;" aria-valuenow="10.8" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Áreas Desativadas</span>
+                                <span>8.2%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 8.2%; background-color: #4c7c79;" aria-valuenow="8.2" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Resíduos Industriais</span>
+                                <span>1.2%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 1.2%; background-color: #FFD166;" aria-valuenow="1.2" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Outros</span>
+                                <span>2.1%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 2.1%; background-color: #6C757D;" aria-valuenow="2.1" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h4 class="mb-4">Distribuição por Região</h4>
+                        <canvas id="regionChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="contamination-card">
+                        <h4 class="mb-4">Evolução das Áreas Contaminadas (2002-2019)</h4>
+                        <canvas id="evolutionChart" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-md-8">
+                    <div class="position-relative">
+                        <div class="contamination-map" id="contaminationMap"></div>
+                        <div class="map-controls">
+                            <div class="location-filter">
+                                <label class="form-label">Filtrar por tipo:</label>
+                                <select id="locationFilter" class="form-select">
+                                    <option value="all">Todos os tipos</option>
+                                    <option value="Posto de Combustível">Posto de Combustível</option>
+                                    <option value="Industrial">Industrial</option>
+                                    <option value="Residencial">Residencial</option>
+                                    <option value="Aterro">Aterro</option>
+                                    <option value="Mineração">Mineração</option>
+                                    <option value="Transportes">Transportes</option>
+                                    <option value="Alimentos">Alimentos</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="legend">
+                        <h5>Legenda</h5>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #8b2e2e;"></div>
+                            <span>Postos de Combustível</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3A606E;"></div>
+                            <span>Áreas Industriais</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #4c7c79;"></div>
+                            <span>Residencial/Comercial</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #FFD166;"></div>
+                            <span>Aterro/Resíduos</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #6C757D;"></div>
+                            <span>Transportes</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #8B008B;"></div>
+                            <span>Alimentos</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #008080;"></div>
+                            <span>Outros</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h5>Principais Contaminantes</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">Solventes</li>
+                            <li class="list-group-item">Hidrocarbonetos Aromáticos Policíclicos (PAH)</li>
+                            <li class="list-group-item">Benzeno</li>
+                            <li class="list-group-item">Metais Pesados</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="contamination-card">
+                        <h4 class="mb-4">Sobre o Vigisolo</h4>
+                        <p>O Vigisolo é um programa de vigilância em saúde da população exposta a solos contaminados, integrante da Vigilância em Saúde das populações expostas a agentes químicos (Vigipeq).</p>
+                        <p>As ações concentram-se nas populações expostas às áreas contaminadas, com objetivo de recomendar medidas de promoção da saúde, prevenção dos fatores de risco e atenção integral à saúde da população.</p>
+                        
+                        <div class="info-box">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Impacto na Saúde</h5>
+                            <p>Estima-se que mais de 2,7 milhões de pessoas estejam expostas ou potencialmente expostas a áreas contaminadas no estado de São Paulo, representando um sério problema de saúde pública.</p>
+                        </div>
+                        
+                        <a href="#contato" class="btn btn-primary mt-3">Entre em Contato para Mais Informações</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5">
+        <div class="container">
+            <div class="row text-center text-md-start">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <div  class="logo">
+                    <img src="../assect/logo.png" alt="Pure" class="logo">
+                    </div>
+                    <p class="mt-2 text-white">Transformando cidades para um futuro sustentável.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="text-white">Links Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="sobre.html" class="text-white">Sobre nós</a></li>
+                        <li><a href="#mapa" class="text-white">Mapa</a></li>
+                        <li><a href="#contato" class="text-white">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="text-white">Siga-nos</h5>
+                    <div class="social-icons">
+                        <a href="#" class="text-white mx-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white mx-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white mx-2"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col text-center">
+                    <p class="mt-4 mb-0 text-white">&copy; 2025 Pure. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dados do relatório
+            const regionData = {
+                'São Paulo': 1539,
+                'RMSP - outros': 781,
+                'Interior': 1646,
+                'Litoral': 340,
+                'Vale do Paraíba': 268
+            };
+
+            const activityData = {
+                'Postos de Combustível': 3510,
+                'Industrial': 681,
+                'Comercial': 216,
+                'Resíduos': 128,
+                'Acidentes/Agricultura/Desconhecida': 37
+            };
+
+            const evolutionData = {
+                years: [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
+                areas: [255, 420, 650, 890, 1250, 1800, 2400, 3000, 3600, 4100, 4572]
+            };
+
+            // Gráfico de regiões
+            const regionCtx = document.getElementById('regionChart').getContext('2d');
+            new Chart(regionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(regionData),
+                    datasets: [{
+                        data: Object.values(regionData),
+                        backgroundColor: ['#8b2e2e', '#3A606E', '#4c7c79', '#FFD166', '#6C757D']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de evolução
+            const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
+            new Chart(evolutionCtx, {
+                type: 'line',
+                data: {
+                    labels: evolutionData.years,
+                    datasets: [{
+                        label: 'Áreas Contaminadas',
+                        data: evolutionData.areas,
+                        borderColor: '#8b2e2e',
+                        backgroundColor: 'rgba(139, 46, 46, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Áreas'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Mapa de calor das áreas contaminadas
+            const map = L.map('contaminationMap').setView([-23.5505, -46.6333], 8);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            // Pontos de contaminação
+            const contaminationPoints = [
+                // Pontos anteriores
+                { lat: -23.5225, lng: -46.1883, type: 'Industrial', name: 'Mogi das Cruzes', 
+                  description: '43 áreas contaminadas com metais pesados, solventes aromáticos e hidrocarbonetos' },
+                { lat: -23.8950, lng: -46.4258, type: 'Industrial', name: 'Cubatão (Vale da Morte)', 
+                  description: 'Contaminação por chumbo, cádmio, zinco, cobre, arsênio e organoclorados' },
+                { lat: -23.5505, lng: -46.6333, type: 'Industrial', name: 'São Paulo (Capital)', 
+                  description: 'Várias áreas incluindo Vila Carioca, Condomínio Barão de Mauá, Parque Villa-Lobos' },
+                { lat: -23.6500, lng: -46.7167, type: 'Industrial', name: 'Santo Amaro', 
+                  description: 'Contaminação por chumbo, cádmio, arsênio e zinco da ex-fundição Plumbum' },
+                { lat: -23.6229, lng: -46.5548, type: 'Industrial', name: 'São Caetano do Sul', 
+                  description: 'Contaminação por HCH (hexaclorociclohexano) e mercúrio' },
+                { lat: -22.9056, lng: -47.0608, type: 'Industrial', name: 'Campinas', 
+                  description: 'Mansões Santo Antonio - Solventes clorados e metais pesados' },
+                { lat: -23.9608, lng: -46.3339, type: 'Industrial', name: 'Santos e São Vicente', 
+                  description: 'Organoclorados e metais pesados de depósitos da Rhodia' },
+                { lat: -23.9500, lng: -46.3167, type: 'Industrial', name: 'Litoral Paulista', 
+                  description: 'Áreas de cultivo de ostras contaminadas com arsênio e bactérias' },
+                
+                // Novos pontos solicitados
+                { lat: -22.0589, lng: -46.9750, type: 'Posto de Combustível', name: 'AGUAÍ BRAZÃO LUBRIFICANTES LTDA', 
+                  description: 'ROD. SP-225 (AGUAÍ / PIRASSUNUNGA) KM 1,5 - RURAL - AGUAÍ' },
+                { lat: -22.7372, lng: -47.3300, type: 'Posto de Combustível', name: 'AMERICANA AGNALDO BRAGA - ME', 
+                  description: 'R. ANHANGUERA 1282 - NOVA AMERICANA - AMERICANA' },
+                { lat: -22.7400, lng: -47.3200, type: 'Posto de Combustível', name: 'XODÓ POSTO DE SERVIÇOS LTDA', 
+                  description: 'R. RAFAEL VITTA 350 - JD STA MÔNICA - AMERICANA' },
+                { lat: -22.7000, lng: -46.7700, type: 'Aterro', name: 'ATERRO SANITÁRIO DE AMPARO', 
+                  description: 'ROD. SP-352 S/N KM 149 - DO BRUMADO - AMPARO' },
+                { lat: -21.2050, lng: -50.4300, type: 'Posto de Combustível', name: 'AUTO POSTO GARCIA ARAÇATUBA LTDA', 
+                  description: 'AV. PRESTES MAIA 1566 - PLANALTO - ARAÇATUBA' },
+                { lat: -21.2100, lng: -50.4400, type: 'Posto de Combustível', name: 'MARACÁ AUTO POSTO LTDA', 
+                  description: 'R. RANGEL PESTANA 190 - SÃO JOAQUIM - ARAÇATUBA' },
+                { lat: -21.7900, lng: -48.1800, type: 'Transportes', name: 'CIA TRÓLEIBUS ARARAQUARA', 
+                  description: 'AV. BENTO DE ABREU 1172 - JD. PRIMAVERA - ARARAQUARA' },
+                { lat: -21.8000, lng: -48.1700, type: 'Industrial', name: 'USINA MARINGÁ', 
+                  description: 'ROD. SP-255 (ARARAQUARA - RIBEIRÃO PRETO) KM 73 - ZONA RURAL - ARARAQUARA' },
+                { lat: -22.6600, lng: -50.4100, type: 'Posto de Combustível', name: 'ECOL COMERCIAL DE PETRÓLEO LTDA', 
+                  description: 'AV. RUI BARBOSA 1793 - JD PAULISTA - ASSIS' },
+                { lat: -22.9000, lng: -47.0600, type: 'Posto de Combustível', name: 'ALMEIDA & L. OLIVEIRA COMÉRCIO DE COMBUSTÍVEIS LTDA', 
+                  description: 'AV. JOHN BOYD DUNLOP 460 - CH DA REPÚBLICA - CAMPINAS' },
+                { lat: -22.9100, lng: -47.0500, type: 'Posto de Combustível', name: 'AUTO POSTO MARIA MONTEIRO LTDA', 
+                  description: 'R. MARIA MONTEIRO 1158 - CAMBUÍ - CAMPINAS' },
+                { lat: -22.9200, lng: -47.0400, type: 'Posto de Combustível', name: 'CENTRO AUTOMOTIVO PORTAL DAS AMOREIRAS LTDA', 
+                  description: 'AV. DAS AMOREIRAS 2875 - JD DO LAGO - CAMPINAS' },
+                { lat: -20.5400, lng: -47.4000, type: 'Industrial', name: 'AMAZONAS INDÚSTRIA E COMÉRCIO LTDA', 
+                  description: 'ROD. PREFEITO FÁBIO TALARICO KM 36 - ZONA RURAL - FRANCA' },
+                { lat: -23.9900, lng: -46.2500, type: 'Industrial', name: 'A. G. DE PINHO & CIA. LTDA', 
+                  description: 'AV. PUGLISI 610 - CENTRO - GUARUJÁ' },
+                { lat: -22.5600, lng: -47.4000, type: 'Industrial', name: 'AÇUCAREIRA BOA VISTA LTDA', 
+                  description: 'R. ÂNGELO SANTA ROSA 167 - JD CELINA - LIMEIRA' },
+                { lat: -22.2200, lng: -49.9500, type: 'Posto de Combustível', name: 'AUTO POSTO SAMPAIO VIDAL LTDA', 
+                  description: 'AV. SAMPAIO VIDAL 1003 - CENTRO - MARÍLIA' },
+                { lat: -23.5300, lng: -46.7800, type: 'Posto de Combustível', name: 'AUTO POSTO ATENCIOSO LTDA', 
+                  description: 'R. GARIBALDI 55 - JD. PIRATININGA - OSASCO' },
+                { lat: -21.4900, lng: -51.7000, type: 'Industrial', name: 'CEBRIAN, NOGUEIRA & CIA LTDA', 
+                  description: 'R. GOIÁS 819 - CENTRO - OURO VERDE' },
+                { lat: -22.7300, lng: -47.6500, type: 'Posto de Combustível', name: 'AUTO POSTO CENTRAL NOVA ERA LTDA', 
+                  description: 'R. TREZE DE MAIO 416 - CENTRO - PIRACICABA' },
+                { lat: -22.2800, lng: -51.5000, type: 'Alimentos', name: 'SINA INDÚSTRIA DE ALIMENTOS LTDA', 
+                  description: 'VIA DE ACESSO NADIR FLÁVIA DE MEDEIROS S/N - V. SÃO FRANCISCO - PIRAPOZINHO' },
+                { lat: -22.1100, lng: -50.1700, type: 'Posto de Combustível', name: 'AUTO POSTO CIDADE DE POMPÉIA LTDA', 
+                  description: 'R. DR. LUIZ MIRANDA 1551 - CENTRO - POMPÉIA' },
+                { lat: -22.1300, lng: -51.3900, type: 'Transportes', name: 'EMPRESA DE TRANSPORTES ANDORINHA', 
+                  description: 'AV. JOAQUIM CONSTANTINO 376 - VILA INDUSTRIAL - PRESIDENTE PRUDENTE' },
+                { lat: -23.7100, lng: -46.4100, type: 'Posto de Combustível', name: 'DELFT OIL & ENERGY DERIVADOS DE PETRÓLEO LTDA', 
+                  description: 'ROD. ÍNDIO TIBIRIÇÁ (SP-031) KM 51 - JD GOVERNADOR - RIBEIRÃO PIRES' },
+                { lat: -23.7000, lng: -46.5500, type: 'Posto de Combustível', name: 'AUTO POSTO DE SERVIÇOS D\'SHELL LTDA', 
+                  description: 'R. DOS VIANAS 2185 - DOS VIANAS - SÃO BERNARDO DO CAMPO' },
+                { lat: -20.8100, lng: -49.3800, type: 'Posto de Combustível', name: 'AUTO POSTO REDENTORA EIRELI', 
+                  description: 'R. ANTÔNIO GODOY 3608 - REDENTORA - SÃO JOSÉ DO RIO PRETO' },
+                { lat: -23.1800, lng: -45.8900, type: 'Posto de Combustível', name: 'AUTO POSTO 3 ERRES DE SÃO JOSÉ DOS CAMPOS LTDA', 
+                  description: 'R. MONTEIRO LOBATO 159 - V. RANGEL - SÃO JOSÉ DOS CAMPOS' },
+                { lat: -22.9700, lng: -46.9900, type: 'Industrial', name: 'CARTONAGEM BELA VISTA LTDA', 
+                  description: 'R. SEBASTIÃO BARBARINI 59 - JD SÃO PEDRO - VALINHOS' },
+                { lat: -23.5500, lng: -46.6000, type: 'Posto de Combustível', name: 'POSTO DE SERVIÇOS GABIMAR LTDA', 
+                  description: 'AV. SAPOPEMBA 2620 - V. REGENTE FEIJÓ - SÃO PAULO' }
+            ];
+
+            const colors = {
+                'Posto de Combustível': '#8b2e2e',
+                'Industrial': '#3A606E',
+                'Residencial': '#4c7c79',
+                'Aterro': '#FFD166',
+                'Transportes': '#6C757D',
+                'Alimentos': '#8B008B',
+                'Outros': '#008080'
+            };
+
+            let markers = [];
+
+            // Adicionar marcadores ao mapa
+            contaminationPoints.forEach(point => {
+                const marker = L.circleMarker([point.lat, point.lng], {
+                    color: colors[point.type],
+                    fillColor: colors[point.type],
+                    fillOpacity: 0.7,
+                    radius: 8
+                }).addTo(map);
+
+                marker.bindPopup(`
+                    <strong>${point.name}</strong><br>
+                    Tipo: ${point.type}<br>
+                    ${point.description}
+                `);
+
+                // Armazenar referência para filtragem
+                markers.push({
+                    marker: marker,
+                    type: point.type
+                });
+            });
+
+            // Configurar filtro
+            const locationFilter = document.getElementById('locationFilter');
+            locationFilter.addEventListener('change', function() {
+                const selectedType = this.value;
+                
+                markers.forEach(item => {
+                    if (selectedType === 'all' || item.type === selectedType) {
+                        item.marker.addTo(map);
+                    } else {
+                        map.removeLayer(item.marker);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
